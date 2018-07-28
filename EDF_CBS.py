@@ -71,7 +71,14 @@ class EDF_CBS(Scheduler):
         if cpu.running and self.is_soft_job(cpu.running):
             self.cbs_servers[cpu.running.task].update_runtime(self.sim.now_ms())
 
-        cpu_min = cpu
+        key = lambda x: (
+            1 if not x.running else 0,
+            self.cbs_servers[x.running.task].current_deadline if x.running and self.is_soft_job(x.running) else
+                x.running.absolute_deadline if x.running else 0,
+            1 if x is cpu else 0
+        )
+        cpu_min = max(self.processors, key=key)
+        # cpu_min = cpu
 
         hard_job = None
         l = [j for j in self.ready_list if j.is_active() and not j.is_running()]

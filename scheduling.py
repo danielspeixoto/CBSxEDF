@@ -3,11 +3,12 @@ from simso.core import Model
 from simso.configuration import Configuration
 from simso.generator import task_generator
 from tasks import create, add
+import analysis
 
 DEBUG = True
 
 
-def default_config(duration):
+def default_config(duration, cpu_count):
     config = Configuration()
 
     # Amount of ms for the experiment
@@ -15,7 +16,8 @@ def default_config(duration):
     config.duration = duration * config.cycles_per_ms
 
     # Add a processor:
-    config.add_processor(name="CPU 1", identifier=1)
+    for i in range(cpu_count):
+        config.add_processor(name="CPU " + str(i), identifier=i)
     return config
 
 
@@ -29,20 +31,23 @@ def config_edf(config):
     config.etm = 'acet'
 
 
-def run(num_sets, num_tasks, utilization, percent, soft_contrib, duration):
+def run(num_sets, num_tasks, utilization, percent, soft_contrib, duration, cpu_count):
     # Create taskset
     tset = create(num_sets, num_tasks, utilization)
+    cbs_res = None
+    edf_res = None
     for tasks in tset:
-        config = default_config(duration)
+        config = default_config(duration, cpu_count)
         add(config, tasks, percent, soft_contrib)
 
         config_cbs(config)
-        cbs_results = run_model(config)
+        cbs_res = analysis.merge(analysis.analysis(run_model(config)), cbs_res)
 
         config_edf(config)
-        edf_results = run_model(config)
+        edf_res = analysis.merge(analysis.analysis(run_model(config)), edf_res)
 
-        return cbs_results, edf_results
+
+    return analysis.division(cbs_res, len(tset)), analysis.division(edf_res, len(tset))
 
 
 def run_model(config):
