@@ -8,6 +8,7 @@ from simso.core import Task
 from simso.generator import task_generator
 from scheduling import run
 import constants
+import timeit
 
 
 def create_file(path, name, obj):
@@ -22,6 +23,7 @@ def create_file(path, name, obj):
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
 
+start_time = timeit.default_timer()
 for tasks in constants.num_tasks:
     for cpu in constants.cpu_count:
         for soft in constants.soft_contrib:
@@ -32,6 +34,6 @@ for tasks in constants.num_tasks:
                 create_file(path, "cbs.pkl", cbs)
                 create_file(path, "edf.pkl", edf)
 
-
-
-
+elapsed = timeit.default_timer() - start_time
+minutes = elapsed / 60
+print("Took " + str(minutes) + " minutes to finish")
