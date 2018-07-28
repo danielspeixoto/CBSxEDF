@@ -3,82 +3,60 @@ from simso.core import Model, Results, ProcEvent, Results
 from simso.configuration import Configuration
 from simso.core import Task
 from simso.generator import task_generator
+from scheduling import run
 
-# Manual configuration:
-configuration = Configuration()
-configuration.etm = 'acet'
-
-# Amount of ms for the experiment
-configuration.duration = 20 * configuration.cycles_per_ms
-
-# Add tasks:
-num_tasks = 2
-utilization = 0.8
+# parameters
+num_tasks = [100]
+utilization = [20]
 num_sets = 1
-# n and u are incorrectly placed
-ut = task_generator.gen_uunifastdiscard(nsets=num_sets, u=num_tasks, n=utilization)
-pd = task_generator.gen_periods_uniform(num_tasks, num_sets, 2, 10)
-tset = task_generator.gen_tasksets(ut, pd)
-# print("Utilization")
-# print(ut)
-# print("Periods")
-# print(pd)
-# print("Task Set")
-# print(tset)
+soft_contrib = [0.9]
+percents = [0.6]
+duration = 1000
 
-tset = [[(1.649366, 6.088448), (4.304636, 8.135785)]]
+def init_dict_tasks(dict, type):
+    dict[type + '_abort_count'] = 0
+    dict[type + '_preemption_count'] = 0
 
-counter = 0
-for set in tset:
-    for task in set:
-        configuration.add_task(name="Task" + str(counter),
-                               identifier=counter,
-                               period=task[1],
-                               deadline=task[1],
-                               # wcet=task[0],
-                               acet=task[0]
-                               )
-        counter += 1
+def entry(dict, type, task):
+    dict[type + '_abort_count'] += task.abort_count
+    for job in task.jobs:
+        dict[type + '_preemption_count'] += job.preemption_count
+
+def analysis(result):
+    # abort_count
+    dict = {}
+    dict['total_migrations'] = result.total_migrations
+    dict['total_preemptions'] = result.total_preemptions
+    dict['total_task_migrations'] = result.total_task_migrations
+    dict['total_task_resumptions'] = result.total_task_resumptions
+    dict['total_exceeded_count'] = result.total_exceeded_count
+    init_dict_tasks(dict, 'soft')
+    init_dict_tasks(dict, 'hard')
+    for key, value in result.tasks.iteritems():
+        if value.task.data['soft']:
+            entry(dict, 'soft', value)
+        else:
+            entry(dict, 'hard', value)
+
+    for key, value in result.processors.iteritems():
+        dict['proc_save_count'] = value.context_save_count
+        dict['proc_save_overhead'] = value.context_save_overhead
+        dict['proc_load_count'] = value.context_load_count
+        dict['proc_load_overhead'] = value.context_load_overhead
+
+    return dict
 
 
-# configuration.add_task(name="T1", identifier=1, period=7,
-#                        activation_date=0, wcet=3, deadline=7)
-# configuration.add_task(name="T2", identifier=2, period=12,
-#                        activation_date=0, wcet=3, deadline=12)
-# configuration.add_task(name="T3", identifier=3, period=20,
-#                        activation_date=0, wcet=5, deadline=20)
-# print(task_generator.gen_ripoll(num_sets, compute=100, deadline=1000, period=0, target_util=0.85))
+for tasks in num_tasks:
+    for soft in soft_contrib:
+        for util in utilization:
+            for dev in percents:
+                cbs, edf = run(num_sets, tasks, util, dev, soft, duration)
+                print("CBS")
+                cbs_data = analysis(cbs)
+                print(cbs_data)
+                print("EDF")
+                edf_Data = analysis(edf)
+                print(edf_Data)
 
-# Add a processor:
-configuration.add_processor(name="CPU 1", identifier=1)
 
-# Add a scheduler:
-#configuration.scheduler_info.filename = "examples/RM.py"
-configuration.scheduler_info.clas = "simso.schedulers.EDF"
-
-# Check the config before trying to run it.
-configuration.check_all()
-
-# Init a model from the configuration.
-model = Model(configuration)
-
-# Execute the simulation.
-model.run_model()
-
-# Print logs.
-print("Logs")
-for log in model.logs:
-    print(log)
-
-cxt = 0
-for processor in model.processors:
-    prev = None
-    for evt in processor.monitor:
-        if evt[1].event == ProcEvent.RUN:
-            if prev is not None and prev != evt[1].args.task:
-                cxt += 1
-            prev = evt[1].args.task
-
-# print("Number of context switches (without counting the OS): " + str(cxt))
-#
-# print(model.results.scheduler.activate_count)
