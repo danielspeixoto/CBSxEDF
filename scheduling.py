@@ -28,7 +28,7 @@ def config_cbs(config):
 
 def config_edf(config):
     config.scheduler_info.clas = 'simso.schedulers.EDF'
-    config.etm = 'acet'
+    config.etm = 'wcet'
 
 
 def run(num_sets, num_tasks, utilization, percent, soft_contrib, duration, cpu_count):

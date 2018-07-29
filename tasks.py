@@ -3,8 +3,9 @@ from simso.generator import task_generator
 
 def create(num_sets, num_tasks, utilization):
     ut = task_generator.gen_randfixedsum(num_sets, num_tasks, utilization)
+    ut2 = ut
     pd = task_generator.gen_periods_uniform(num_tasks, num_sets, 2, 100)
-    tset = task_generator.gen_tasksets(ut, pd)
+    tset = task_generator.gen_tasksets(ut2, pd)
 
     # print(tset)
     # tset_wcet = []
@@ -35,14 +36,14 @@ def add(config, tasks, percent, soft_contrib):
                             period=task[1],
                             deadline=task[1],
                             wcet=task[0],
-                            acet=get_acet_from_wcet(task[0], percent),
+                            acet=task[0],
                             # Ebforces that wcet is used
-                            et_stddev=task[0] * percent,
+                            et_stddev=0,
                             data={
                                 'soft': False,
-                                # 'cbs_period': task[1],
-                                # 'cbs_maximum_runtime': task[0],
-                                # 'cbs_deadline': task[1]
+                                'cbs_period': task[1],
+                                'cbs_maximum_runtime': task[0],
+                                'cbs_deadline': task[1]
                             }
                             )
             hard_tasks_amount -= 1

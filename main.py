@@ -28,8 +28,9 @@ for tasks in constants.num_tasks:
     for cpu in constants.cpu_count:
         for soft in constants.soft_contrib:
             for util in constants.utilization:
+                util *= cpu
                 cbs, edf = run(constants.num_sets, tasks, util, constants.percents, soft, constants.duration, cpu)
-                path = 'results/' + str(tasks) + "/" + str(cpu) + "/" + str(soft) + "/" + str(util)
+                path = 'results_wcetXacet/' + str(tasks) + "/" + str(cpu) + "/" + str(soft) + "/" + str(util)
 
                 create_file(path, "cbs.pkl", cbs)
                 create_file(path, "edf.pkl", edf)
