@@ -50,8 +50,7 @@ def add(config, tasks, percent, soft_contrib):
         else:
             config.add_task(name="Task " + str(counter) + " Soft",
                             identifier=counter,
-                            # TODO Check if it is aborted
-                            # abort_on_miss=False,
+                            abort_on_miss=False,
                             period=task[1],
                             deadline=task[1],
                             wcet=task[0],

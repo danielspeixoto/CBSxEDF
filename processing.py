@@ -67,7 +67,7 @@ def get_name(view):
         return unicode('Utilização', 'utf-8')
 
 # tasks #cpus #porc #util
-views = [[50, 1, None,  5]]
+views = [[50, 8, 0.8,  None]]
 methods = ['cbs', 'edf']
 params = [
             'total_preemptions',
@@ -75,15 +75,17 @@ params = [
             'hard_abort_count',
             'soft_abort_count',
             'hard_preemption_count',
-            'soft_preemption_count'
+            'soft_preemption_count',
+            # 'tardiness'
         ]
 param_pt = {
-    'total_preemptions': unicode('Prempções', 'utf-8'),
+    'total_preemptions': unicode('Preempções', 'utf-8'),
     'total_task_migrations': unicode('Migrações', 'utf-8'),
     'hard_abort_count': unicode('Quantidade de vezes que uma Hard Task é abortada', 'utf-8'),
     'soft_abort_count': unicode('Quantidade de vezes que uma Soft Task é abortada', 'utf-8'),
     'hard_preemption_count': unicode('Quantidade de vezes que uma Hard Task é preemptada', 'utf-8'),
-    'soft_preemption_count': unicode('Quantidade de vezes que uma Soft Task é preemptada', 'utf-8')
+    'soft_preemption_count': unicode('Quantidade de vezes que uma Soft Task é preemptada', 'utf-8'),
+    'tardiness': 'Tardiness'
 }
 for view in views:
     idxs = get_range(view)
@@ -114,14 +116,7 @@ for view in views:
                         dict[method]['hard_preemption_count'][len(dict[method]['hard_preemption_count']) - 1] /= (
                                     task * (1 - soft))
                         dict[method]['soft_preemption_count'][len(dict[method]['soft_preemption_count']) - 1] /= (task * soft)
-                        # print("EDF")
-                        # print(load_obj(path + "/edf"))
     type = get_type(view.index(None))
-
-    # for method in methods:
-    #     for i in range(len(dict[method]['hard_abort_count'])):
-    #         dict[method]['hard_abort_count'][i] /=
-    # for item in
 
     for param in params:
         plt.figure()

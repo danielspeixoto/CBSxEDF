@@ -30,7 +30,7 @@ for tasks in constants.num_tasks:
             for util in constants.utilization:
                 util *= cpu
                 cbs, edf = run(constants.num_sets, tasks, util, constants.percents, soft, constants.duration, cpu)
-                path = 'results_wcetXacet/' + str(tasks) + "/" + str(cpu) + "/" + str(soft) + "/" + str(util)
+                path = 'results_wcetXacetTard/' + str(tasks) + "/" + str(cpu) + "/" + str(soft) + "/" + str(util)
 
                 create_file(path, "cbs.pkl", cbs)
                 create_file(path, "edf.pkl", edf)

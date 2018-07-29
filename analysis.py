@@ -17,14 +17,21 @@ def analysis(result):
     dict['total_task_migrations'] = result.total_task_migrations
     dict['total_task_resumptions'] = result.total_task_resumptions
     dict['total_exceeded_count'] = result.total_exceeded_count
+    dict['tardiness'] = 0
     init_dict_tasks(dict, 'soft')
     init_dict_tasks(dict, 'hard')
+    soft_amount = 0
     for key, value in result.tasks.iteritems():
         if value.task.data['soft']:
             entry(dict, 'soft', value)
+            for job in value.jobs:
+                if job.response_time:
+                    soft_amount += 1
+                    dict['tardiness'] += max(0, job.response_time - job.absolute_deadline)
         else:
             entry(dict, 'hard', value)
 
+    dict['tardiness'] /= soft_amount
     for key, value in result.processors.iteritems():
         dict['proc_save_count'] = value.context_save_count
         dict['proc_save_overhead'] = value.context_save_overhead
